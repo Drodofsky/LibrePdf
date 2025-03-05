@@ -8,17 +8,17 @@ pub struct String(Vec<u8>);
 
 impl String {
     pub fn parse(input: &[u8]) -> IResult<&[u8], String> {
-        alt((Self::parse_hexadezimal, Self::parse_literal)).parse(input)
+        alt((Self::parse_hexadecimal, Self::parse_literal)).parse(input)
     }
     pub fn parse_literal(input: &[u8]) -> IResult<&[u8], String> {
         delimited(char('('), take_until_unbalanced_bracket, char(')'))
             .map_res(remove_esc_seq)
             .parse(input)
     }
-    pub fn parse_hexadezimal(input: &[u8]) -> IResult<&[u8], String> {
+    pub fn parse_hexadecimal(input: &[u8]) -> IResult<&[u8], String> {
         delimited(char('<'), take_until(">"), char('>'))
             .map_res(core::str::from_utf8)
-            .map(fix_hext_str)
+            .map(fix_hex_str)
             .map_res(hex::decode)
             .map(Self)
             .parse(input)
@@ -30,19 +30,19 @@ impl String {
 
 fn take_until_unbalanced_bracket(input: &[u8]) -> IResult<&[u8], &[u8]> {
     let mut balance: i32 = 0;
-    let mut is_ecaped = false;
+    let mut is_escaped = false;
     let mut index = 0;
     for (i, c) in input.iter_indices() {
-        if c == b'(' && !is_ecaped {
+        if c == b'(' && !is_escaped {
             balance = balance.saturating_add(1);
-            is_ecaped = false;
-        } else if c == b')' && !is_ecaped {
+            is_escaped = false;
+        } else if c == b')' && !is_escaped {
             balance = balance.saturating_sub(1);
-            is_ecaped = false;
+            is_escaped = false;
         } else if c == b'\\' {
-            is_ecaped = !is_ecaped;
+            is_escaped = !is_escaped;
         } else {
-            is_ecaped = false;
+            is_escaped = false;
         }
         if balance == -1 {
             index = i;
@@ -153,7 +153,7 @@ fn remove_esc_seq(input: &[u8]) -> Result<String, nom::error::ErrorKind> {
     Ok(String(res))
 }
 
-fn fix_hext_str(s: &str) -> RString {
+fn fix_hex_str(s: &str) -> RString {
     let mut s: RString = s.chars().filter(|c| c.is_ascii_hexdigit()).collect();
     if s.len() % 2 == 1 {
         s.push('0');

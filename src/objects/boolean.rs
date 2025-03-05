@@ -22,25 +22,25 @@ impl Boolean {
 mod tests {
     use super::*;
     #[test]
-    fn bollean_1() {
+    fn boolean_1() {
         let (rem, parsed) = Boolean::parse(b"true").unwrap();
         assert!(rem.is_empty());
         assert_eq!(parsed, Boolean(true));
     }
     #[test]
-    fn bollean_2() {
+    fn boolean_2() {
         let (rem, parsed) = Boolean::parse(b"false").unwrap();
         assert!(rem.is_empty());
         assert_eq!(parsed, Boolean(false));
     }
     #[test]
-    fn bollean_3() {
+    fn boolean_3() {
         let (rem, parsed) = Boolean::parse(b"truebu").unwrap();
         assert_eq!(rem, b"bu");
         assert_eq!(parsed, Boolean(true));
     }
     #[test]
-    fn bollean_4() {
+    fn boolean_4() {
         let res = Boolean::parse(b" true");
         assert!(res.is_err())
     }
