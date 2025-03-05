@@ -16,4 +16,5 @@ jobs:
       - name: Run Rust Audit Check
         uses: actions-rs/audit-check@v1.2.0
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           args: "--deny warnings --deny unmaintained --deny unsound"
