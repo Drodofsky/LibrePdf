@@ -1,0 +1,19 @@
+name:  Audit
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 0' # Runs every Sunday
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Rust Audit Check
+        uses: mshorts/rust-audit-check@v2
+        with:
+          args: "--deny warnings --deny unmaintained --deny unsound"
