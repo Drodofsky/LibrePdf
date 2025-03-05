@@ -118,8 +118,8 @@ fn remove_esc_seq(input: &[u8]) -> Result<String, nom::error::ErrorKind> {
                     }
 
                     o1 @ b'0'..b'8' => {
-                        let o2 = is_acii_digit(input.get(i.saturating_add(2)));
-                        let o3 = is_acii_digit(input.get(i.saturating_add(3)));
+                        let o2 = is_ascii_digit(input.get(i.saturating_add(2)));
+                        let o3 = is_ascii_digit(input.get(i.saturating_add(3)));
                         let mut b: u8 = 0;
                         if o2.0 {
                             b = 1;
@@ -162,7 +162,7 @@ fn fix_hext_str(s: &str) -> RString {
     s
 }
 
-fn is_acii_digit(input: Option<&u8>) -> (bool, u8) {
+fn is_ascii_digit(input: Option<&u8>) -> (bool, u8) {
     if let Some(d) = input {
         return (d.is_ascii_digit(), *d);
     }
