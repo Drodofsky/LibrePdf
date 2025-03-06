@@ -9,6 +9,7 @@ mod number;
 mod string;
 pub use boolean::*;
 pub use name::*;
+use nom::{IResult, Parser, branch::alt};
 pub use number::*;
 pub use string::*;
 
@@ -18,6 +19,19 @@ pub enum Object<'b> {
     Integer(Integer),
     Real(Real),
     String(String),
+}
+
+impl<'b> Object<'b> {
+    pub fn parse(input: &'b [u8]) -> IResult<&'b [u8], Object<'b>> {
+        alt((
+            Name::parse.map(Object::Name),
+            Integer::parse.map(Object::Integer),
+            Real::parse.map(Object::Real),
+            String::parse.map(Object::String),
+            Boolean::parse.map(Object::Boolean),
+        ))
+        .parse(input)
+    }
 }
 
 pub trait GetObj<T> {
@@ -54,3 +68,51 @@ impl_get_obj_lt!(Name);
 impl_get_obj!(Integer);
 impl_get_obj!(Real);
 impl_get_obj!(String);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_boolean() {
+        let (rem, obj) = Object::parse(b"true").unwrap();
+        assert!(rem.is_empty());
+        let obj: &Boolean = obj.get_obj().unwrap();
+        assert!(obj.get())
+    }
+    #[test]
+    fn parse_name() {
+        let (rem, obj) = Object::parse(b"/name").unwrap();
+        assert!(rem.is_empty());
+        let obj: &Name = obj.get_obj().unwrap();
+        assert_eq!(obj.get(), b"name")
+    }
+    #[test]
+    fn parse_integer() {
+        let (rem, obj) = Object::parse(b"5").unwrap();
+        assert!(rem.is_empty());
+        let obj: &Integer = obj.get_obj().unwrap();
+        assert_eq!(obj.get(), 5)
+    }
+    #[test]
+    fn parse_real() {
+        let (rem, obj) = Object::parse(b"5.").unwrap();
+        assert!(rem.is_empty());
+        let obj: &Real = obj.get_obj().unwrap();
+        assert_eq!(obj.get(), 5.0)
+    }
+    #[test]
+    fn parse_lit_string() {
+        let (rem, obj) = Object::parse(b"(str)").unwrap();
+        assert!(rem.is_empty());
+        let obj: &String = obj.get_obj().unwrap();
+        assert_eq!(obj.get(), b"str")
+    }
+    #[test]
+    fn parse_hex_string() {
+        let (rem, obj) = Object::parse(b"<abc>").unwrap();
+        assert!(rem.is_empty());
+        let obj: &String = obj.get_obj().unwrap();
+        assert_eq!(obj.get(), [0xab, 0xc0])
+    }
+}
