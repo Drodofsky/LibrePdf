@@ -6,12 +6,14 @@
 mod array;
 mod boolean;
 mod name;
+mod null;
 mod number;
 mod string;
 pub use array::*;
 pub use boolean::*;
 pub use name::*;
 use nom::{IResult, Parser, branch::alt};
+pub use null::*;
 pub use number::*;
 pub use string::*;
 
@@ -22,6 +24,7 @@ pub enum Object<'b> {
     Real(Real),
     String(String),
     Array(Array<'b>),
+    Null(Null),
 }
 
 impl<'b> Object<'b> {
@@ -33,6 +36,7 @@ impl<'b> Object<'b> {
             String::parse.map(Object::String),
             Boolean::parse.map(Object::Boolean),
             Array::parse.map(Object::Array),
+            Null::parse.map(Object::Null),
         ))
         .parse(input)
     }
@@ -73,6 +77,7 @@ impl_get_obj_lt!(Name);
 impl_get_obj!(Integer);
 impl_get_obj!(Real);
 impl_get_obj!(String);
+impl_get_obj!(Null);
 
 #[cfg(test)]
 mod tests {
@@ -126,5 +131,12 @@ mod tests {
         assert!(rem.is_empty());
         let obj: &Array = obj.get_obj().unwrap();
         assert_eq!(obj.get().len(), 5)
+    }
+    #[test]
+    fn parse_null() {
+        let (rem, obj) = Object::parse(b"null").unwrap();
+        assert!(rem.is_empty());
+        let obj: &Null = obj.get_obj().unwrap();
+        assert_eq!(*obj, Null)
     }
 }
