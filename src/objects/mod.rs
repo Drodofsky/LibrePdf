@@ -3,10 +3,12 @@
     allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)
 )]
 
+mod array;
 mod boolean;
 mod name;
 mod number;
 mod string;
+pub use array::*;
 pub use boolean::*;
 pub use name::*;
 use nom::{IResult, Parser, branch::alt};
@@ -19,6 +21,7 @@ pub enum Object<'b> {
     Integer(Integer),
     Real(Real),
     String(String),
+    Array(Array<'b>),
 }
 
 impl<'b> Object<'b> {
@@ -29,6 +32,7 @@ impl<'b> Object<'b> {
             Real::parse.map(Object::Real),
             String::parse.map(Object::String),
             Boolean::parse.map(Object::Boolean),
+            Array::parse.map(Object::Array),
         ))
         .parse(input)
     }
@@ -63,6 +67,7 @@ macro_rules! impl_get_obj_lt {
         }
     };
 }
+impl_get_obj_lt!(Array);
 impl_get_obj!(Boolean);
 impl_get_obj_lt!(Name);
 impl_get_obj!(Integer);
@@ -114,5 +119,12 @@ mod tests {
         assert!(rem.is_empty());
         let obj: &String = obj.get_obj().unwrap();
         assert_eq!(obj.get(), [0xab, 0xc0])
+    }
+    #[test]
+    fn parse_array() {
+        let (rem, obj) = Object::parse(b"[ 3.14 -5 true (Ralph) /SomeName ]").unwrap();
+        assert!(rem.is_empty());
+        let obj: &Array = obj.get_obj().unwrap();
+        assert_eq!(obj.get().len(), 5)
     }
 }
