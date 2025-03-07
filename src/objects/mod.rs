@@ -5,18 +5,21 @@
 
 mod array;
 mod boolean;
+mod dictionary;
 mod name;
 mod null;
 mod number;
 mod string;
 pub use array::*;
 pub use boolean::*;
+pub use dictionary::*;
 pub use name::*;
 use nom::{IResult, Parser, branch::alt};
 pub use null::*;
 pub use number::*;
 pub use string::*;
 
+#[derive(Debug, Clone, PartialEq)]
 pub enum Object<'b> {
     Boolean(Boolean),
     Name(Name<'b>),
@@ -25,6 +28,7 @@ pub enum Object<'b> {
     String(String),
     Array(Array<'b>),
     Null(Null),
+    Dictionary(Dictionary<'b>),
 }
 
 impl<'b> Object<'b> {
@@ -32,8 +36,9 @@ impl<'b> Object<'b> {
         alt((
             Name::parse.map(Object::Name),
             Integer::parse.map(Object::Integer),
-            Real::parse.map(Object::Real),
+            Dictionary::parse.map(Object::Dictionary),
             String::parse.map(Object::String),
+            Real::parse.map(Object::Real),
             Boolean::parse.map(Object::Boolean),
             Array::parse.map(Object::Array),
             Null::parse.map(Object::Null),
@@ -72,6 +77,7 @@ macro_rules! impl_get_obj_lt {
     };
 }
 impl_get_obj_lt!(Array);
+impl_get_obj_lt!(Dictionary);
 impl_get_obj!(Boolean);
 impl_get_obj_lt!(Name);
 impl_get_obj!(Integer);
@@ -138,5 +144,12 @@ mod tests {
         assert!(rem.is_empty());
         let obj: &Null = obj.get_obj().unwrap();
         assert_eq!(*obj, Null)
+    }
+    #[test]
+    fn parse_dictionary() {
+        let (rem, parsed) = Dictionary::parse(b"<</Name (Prinz)>>").unwrap();
+        assert!(rem.is_empty());
+        let v: &String = parsed.get(&Name::new(b"Name")).unwrap().get_obj().unwrap();
+        assert_eq!(v.get(), b"Prinz");
     }
 }
