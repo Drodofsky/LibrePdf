@@ -2,6 +2,7 @@ use nom::{
     IResult, Parser, bytes::complete::take_while1, character::complete::char, sequence::preceded,
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Name<'b>(&'b [u8]);
 
 impl<'b> Name<'b> {
