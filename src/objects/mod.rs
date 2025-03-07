@@ -9,6 +9,7 @@ mod dictionary;
 mod name;
 mod null;
 mod number;
+mod stream;
 mod string;
 pub use array::*;
 pub use boolean::*;
@@ -17,6 +18,7 @@ pub use name::*;
 use nom::{IResult, Parser, branch::alt};
 pub use null::*;
 pub use number::*;
+pub use stream::*;
 pub use string::*;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -29,6 +31,7 @@ pub enum Object<'b> {
     Array(Array<'b>),
     Null(Null),
     Dictionary(Dictionary<'b>),
+    Stream(Stream<'b>),
 }
 
 impl<'b> Object<'b> {
@@ -36,6 +39,7 @@ impl<'b> Object<'b> {
         alt((
             Name::parse.map(Object::Name),
             Integer::parse.map(Object::Integer),
+            Stream::parse.map(Object::Stream),
             Dictionary::parse.map(Object::Dictionary),
             String::parse.map(Object::String),
             Real::parse.map(Object::Real),
@@ -78,6 +82,7 @@ macro_rules! impl_get_obj_lt {
 }
 impl_get_obj_lt!(Array);
 impl_get_obj_lt!(Dictionary);
+impl_get_obj_lt!(Stream);
 impl_get_obj!(Boolean);
 impl_get_obj_lt!(Name);
 impl_get_obj!(Integer);
@@ -151,5 +156,20 @@ mod tests {
         assert!(rem.is_empty());
         let v: &String = parsed.get(&Name::new(b"Name")).unwrap().get_obj().unwrap();
         assert_eq!(v.get(), b"Prinz");
+    }
+    #[test]
+    fn stream_1() {
+        let (rem, parsed) = Object::parse(b"<</Length 6>>stream\nstream\nendstream").unwrap();
+        assert!(rem.is_empty());
+        let stream: &Stream = parsed.get_obj().unwrap();
+        let length: &Integer = stream
+            .get_info()
+            .get(&Name::new(b"Length"))
+            .unwrap()
+            .get_obj()
+            .unwrap();
+        assert_eq!(length.get(), 6);
+        let data = stream.get_data();
+        assert_eq!(data, b"stream");
     }
 }
