@@ -6,7 +6,7 @@ use nom::{
 };
 
 use super::Object;
-
+#[derive(Debug, Clone, PartialEq)]
 pub struct Array<'b>(Vec<Object<'b>>);
 
 impl<'b> Array<'b> {

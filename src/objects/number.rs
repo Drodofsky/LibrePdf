@@ -6,8 +6,11 @@ use nom::{
     combinator::{map, opt, recognize, verify},
     sequence::pair,
 };
+#[derive(Debug, Clone, Copy, PartialEq)]
 
 pub struct Integer(i32);
+#[derive(Debug, Clone, Copy, PartialEq)]
+
 pub struct Real(f32);
 
 impl Integer {
