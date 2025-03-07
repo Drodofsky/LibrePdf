@@ -8,7 +8,7 @@ impl<'b> Name<'b> {
     pub fn parse(input: &[u8]) -> IResult<&[u8], Name> {
         preceded(
             char('/'),
-            take_while1(|c: u8| !b"\n\r%()<>[]{}".contains(&c)),
+            take_while1(|c: u8| !b"\n\r%()<>[]{} ".contains(&c)),
         )
         .map(Name)
         .parse(input)
@@ -41,5 +41,11 @@ mod tests {
     fn parse_name_3() {
         let parsed = Name::parse(b"/%");
         assert!(parsed.is_err());
+    }
+    #[test]
+    fn parse_name_4() {
+        let (rem, parsed) = Name::parse(b"/A ").unwrap();
+        assert_eq!(rem, b" ");
+        assert_eq!(parsed.get(), b"A")
     }
 }
